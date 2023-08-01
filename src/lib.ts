@@ -12,6 +12,7 @@ export async function resolveInput(inputArr: string[]) {
   return filePathArr;
 }
 
+// @ts-expect-error
 async function resolveFilePath(inputPath: string): Promise<string[]> {
   const absInputPath = path.resolve(Deno.cwd(), inputPath);
 

@@ -1,3 +1,20 @@
+## Install
+
+```bash
+git clone https://github.com/suiyuex/hahaconvert
+cd hahaconvert
+
+# 编译可执行程序
+deno task compile
+# 安装为cli
+deno task install
+
+#卸载cli
+deno task uninstall
+```
+
+
+
 ## Usage
 
 导出ods(xlsx)到json

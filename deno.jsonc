@@ -1,5 +1,8 @@
 {
   "tasks": {
-    "dev": "deno run --allow-read --allow-write --watch src/main.ts export -o ./data sheets/Job.ods"
+    "dev": "deno run --allow-read --allow-write --watch src/main.ts export -o ./data sheets/Job.ods",
+    "install": "deno install --allow-read --allow-write -n hahaconvert src/main.ts",
+    "uninstall": "deno uninstall hahaconvert",
+    "compile": "deno compile --allow-read --allow-write --output hahaconvert src/main.ts"
   }
 }

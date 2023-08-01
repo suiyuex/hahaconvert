@@ -49,7 +49,7 @@ class ExportCommand {
       })
       .arguments("[input:string] [...restArgs:string]")
       .action(async (options, ...args) => {
-        console.log(options);
+        // console.log(options);
         this.#validateOptions(options);
 
         switch (options.format) {
