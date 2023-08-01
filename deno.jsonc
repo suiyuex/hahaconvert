@@ -1,0 +1,5 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-read --allow-write --watch src/main.ts export -o ./data sheets/Job.ods"
+  }
+}
