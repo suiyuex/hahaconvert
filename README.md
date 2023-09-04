@@ -65,12 +65,15 @@ hahaconvert export -o ourDir path/to/file.ods
 
 导出csharp文件
 
+**默认情况下，为了保持与c#的语法兼容，如果表格中某列的key为snake_case会被转换成camelCase**
+
 ```bash
 # -f 指定为 cs 是必须的
 hahaconvert export -f cs sheets
 
 # -csharp-ns 指定文件的命名空间，默认没有
 # --csharp-suffix 指定类名/文件名后缀，默认为Config，也就是 Job.ods -> JobConfig.cs with class JobConfig
+# --keep-case 不自动将snake_case转换成camelCase
 ```
 
 

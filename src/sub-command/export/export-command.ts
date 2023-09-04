@@ -8,7 +8,7 @@ import { ensureDirSync } from "https://deno.land/std@0.196.0/fs/mod.ts";
 // @deno-types="https://cdn.sheetjs.com/xlsx-latest/package/types/index.d.ts"
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 
-import { readWorkbook, resolveInput } from "../../lib.ts";
+import { readWorkbook, resolveInput, snakeToPascal } from "../../lib.ts";
 
 type ColumnType =
   | "int"
@@ -25,6 +25,7 @@ interface Options {
   headerRow: number;
   csharpNs?: string;
   csharpSuffix?: string;
+  keepCase?: boolean;
 }
 
 class ExportCommand {
@@ -48,6 +49,7 @@ class ExportCommand {
     this.#tasks = [];
   }
 
+  #opts: Options = null;
   register(command: Command) {
     command
       .command("export", "Export sheet from ods or xlsx to json, cs")
@@ -65,6 +67,10 @@ class ExportCommand {
         { default: "Config" }
       )
       .option(
+        "--keep-case",
+        "snake_case will be converted to PascalCase by default. use this option prevent default action."
+      )
+      .option(
         "-o, --out-dir <dir:string>",
         "Output path. By default file will be converted in-place."
       )
@@ -77,22 +83,25 @@ class ExportCommand {
       })
       .arguments("[input:string] [...restArgs:string]")
       .action(async (options, ...args) => {
-        // console.log(options);
+        console.log(options);
+
         this.#validateOptions(options);
+
+        this.#opts = options;
 
         switch (options.format) {
           case "json":
-            await this.#exportToJson(args as string[], options);
+            await this.#exportToJson(args as string[]);
             break;
           case "cs":
-            await this.#exportToCSharp(args as string[], options);
+            await this.#exportToCSharp(args as string[]);
             break;
         }
       });
   }
 
   // 导出csharp文件
-  async #exportToCSharp(inputArr: string[], options: Options) {
+  async #exportToCSharp(inputArr: string[]) {
     const filePathArr = await resolveInput(inputArr);
     for (let i = 0; i < filePathArr.length; ++i) {
       const filePath = filePathArr[i];
@@ -108,8 +117,10 @@ class ExportCommand {
 `;
       const codePlaceholder = "#$@#";
       const namePlaceholder = "#sheetName#";
-      if (options.csharpNs != undefined) {
-        outFrameStr += `namespace ${options.csharpNs} {\n${codePlaceholder}\n}`;
+      if (this.#opts.csharpNs != undefined) {
+        outFrameStr += `namespace ${
+          this.#opts.csharpNs
+        } {\n${codePlaceholder}\n}`;
       } else {
         outFrameStr += `\n${codePlaceholder}`;
       }
@@ -131,15 +142,13 @@ class ExportCommand {
 
         console.log("sheet: " + sheetName);
         const [headerRow, descRow] = rows.splice(
-          options.headerRow - 1,
+          this.#opts.headerRow - 1,
           2
         ) as string[][];
 
         let sheetOut = `\tpublic class ${namePlaceholder} {\n`;
         for (let m = 0; m < headerRow.length; ++m) {
           const headerCell = headerRow[m];
-
-          const valueArr = headerCell.split("#");
 
           // comment
           sheetOut += `
@@ -149,9 +158,9 @@ class ExportCommand {
 `;
 
           // field
-          sheetOut += `\t\tpublic ${this.#getColumnCSharpType(valueArr[1])} ${
-            valueArr[0]
-          };\n`;
+          sheetOut += `\t\tpublic ${this.#getColumnCSharpType(
+            headerCell
+          )} ${this.#getColumnKey(headerCell)};\n`;
         }
 
         sheetOut += "\t}";
@@ -163,38 +172,38 @@ class ExportCommand {
 
       if (keys.length < 1) continue;
       if (keys.length == 1) {
-        sheetOutObj[keys[0]] = sheetOutObj[keys[0]].replace(
-          namePlaceholder,
-          this.#getOutFileName(filePath) + options.csharpSuffix
+        const className =
+          this.#getOutFileName(filePath) + this.#opts.csharpSuffix;
+
+        let sheetOutStr = sheetOutObj[keys[0]];
+        sheetOutStr = sheetOutStr.replace(namePlaceholder, className);
+        sheetOutStr = outFrameStr.replace(codePlaceholder, sheetOutStr);
+
+        this.#pushTask(
+          this.#writeToFile(this.#getOutFilePath(filePath), sheetOutStr)
         );
       } else {
         for (let n = 0; n < keys.length; ++n) {
-          sheetOutObj[keys[n]].replace(
-            namePlaceholder,
-            workbook.SheetNames[Number(keys[n])] + options.csharpSuffix
+          const className =
+            workbook.SheetNames[Number(keys[n])] + this.#opts.csharpSuffix;
+
+          let sheetOutStr = sheetOutObj[keys[n]];
+          sheetOutStr.replace(namePlaceholder, className);
+          sheetOutStr = outFrameStr.replace(codePlaceholder, sheetOutStr);
+
+          this.#pushTask(
+            this.#writeToFile(this.#getOutFilePath(filePath), sheetOutStr)
           );
         }
-      }
-
-      for (let x = 0; x < keys.length; ++x) {
-        const sheetOutStr = outFrameStr.replace(
-          codePlaceholder,
-          sheetOutObj[keys[x]]
-        );
-
-        this.#pushTask(
-          this.#writeToFile(
-            this.#getOutFilePath(filePath, options),
-            sheetOutStr
-          )
-        );
       }
     }
 
     await this.#waitTasks();
   }
 
-  #getColumnCSharpType(type: string) {
+  #getColumnCSharpType(headerCell: string) {
+    const type = this.#getColumnType(headerCell);
+
     switch (type as ColumnType) {
       case "int":
       case "bool":
@@ -211,7 +220,7 @@ class ExportCommand {
   }
 
   // 导出json文件
-  async #exportToJson(inputArr: string[], options: Options) {
+  async #exportToJson(inputArr: string[]) {
     const filePathArr = await resolveInput(inputArr);
 
     for (let i = 0; i < filePathArr.length; ++i) {
@@ -241,7 +250,10 @@ class ExportCommand {
         if (rows.length === 0) continue;
 
         console.log("sheet: " + sheetName);
-        const headerRow = rows.splice(options.headerRow - 1, 2)[0] as string[];
+        const headerRow = rows.splice(
+          this.#opts.headerRow - 1,
+          2
+        )[0] as string[];
 
         const sheetRows: Array<Record<string, unknown>> = [];
 
@@ -272,7 +284,7 @@ class ExportCommand {
 
       this.#pushTask(
         this.#writeToFile(
-          this.#getOutFilePath(filePath, options),
+          this.#getOutFilePath(filePath),
           JSON.stringify(outObj)
         )
       );
@@ -302,26 +314,43 @@ class ExportCommand {
     return outFileName;
   }
 
-  #getOutFilePath(file_p: string, opts: Options) {
-    const outFileName = this.#getOutFileName(file_p) + "." + opts.format;
+  #getOutFilePath(file_p: string) {
+    const outFileName = this.#getOutFileName(file_p);
 
-    if (!opts.outDir) {
-      return path.join(path.dirname(file_p), outFileName);
+    let fullOutFileName = outFileName;
+    switch (this.#opts.format) {
+      case "cs":
+        fullOutFileName += this.#opts.csharpSuffix + "." + this.#opts.format;
+        break;
+      case "json":
+      default:
+        fullOutFileName += "." + this.#opts.format;
     }
 
-    const outDir = path.resolve(opts.outDir);
+    if (!this.#opts.outDir) {
+      return path.join(path.dirname(file_p), fullOutFileName);
+    }
+
+    const outDir = path.resolve(this.#opts.outDir);
     ensureDirSync(outDir);
-    return path.join(outDir, outFileName);
+    return path.join(outDir, fullOutFileName);
   }
 
   #getColumnKey(headerCell: string): string {
-    return headerCell.trim().split("#")[0];
+    const key = headerCell.trim().split("#")[0];
+    if (!this.#opts.keepCase) {
+      return snakeToPascal(key);
+    }
+    return key;
+  }
+  #getColumnType(headerCell: string): ColumnType {
+    return headerCell.trim().split("#")[1] as ColumnType;
   }
 
   #convertColumnType(cellValue: unknown, headerCell: string) {
     if (!cellValue) return cellValue;
 
-    const columnType = headerCell.trim().split("#")[1] as ColumnType;
+    const columnType = this.#getColumnType(headerCell);
 
     switch (columnType) {
       case "int":

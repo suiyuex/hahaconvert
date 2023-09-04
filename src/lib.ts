@@ -4,6 +4,21 @@ import * as fs from "https://deno.land/std@0.196.0/fs/mod.ts";
 // @deno-types="https://cdn.sheetjs.com/xlsx-latest/package/types/index.d.ts"
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
 
+// 将 snake_case转换成 PascalCase
+export function snakeToPascal(snakeVarName: string) {
+  if (!snakeVarName.includes("_")) return snakeVarName;
+
+  return snakeVarName
+    .split("_")
+    .map((substr, index) => {
+      if (index == 0) {
+        return substr.toLowerCase();
+      }
+      return substr.charAt(0).toUpperCase() + substr.slice(1);
+    })
+    .join("");
+}
+
 export function readWorkbook(filePath: string): XLSX.WorkBook {
   const workbook = XLSX.readFile(filePath);
   return workbook;
