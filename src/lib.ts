@@ -1,6 +1,14 @@
 import * as path from "https://deno.land/std@0.196.0/path/mod.ts";
 import * as fs from "https://deno.land/std@0.196.0/fs/mod.ts";
 
+// @deno-types="https://cdn.sheetjs.com/xlsx-latest/package/types/index.d.ts"
+import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
+
+export function readWorkbook(filePath: string): XLSX.WorkBook {
+  const workbook = XLSX.readFile(filePath);
+  return workbook;
+}
+
 export async function resolveInput(inputArr: string[]) {
   const filePathArr = [];
 

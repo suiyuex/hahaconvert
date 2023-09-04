@@ -2,6 +2,7 @@
   "version": "2",
   "remote": {
     "https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.mjs": "5171b0a510268db6e338dd3d9c0e8ada6b7db7bf61c77d044ccc30198023c642",
+    "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs": "5171b0a510268db6e338dd3d9c0e8ada6b7db7bf61c77d044ccc30198023c642",
     "https://deno.land/std@0.196.0/_util/os.ts": "d932f56d41e4f6a6093d56044e29ce637f8dcc43c5a90af43504a889cf1775e3",
     "https://deno.land/std@0.196.0/assert/assert.ts": "9a97dad6d98c238938e7540736b826440ad8c1c1e54430ca4c4e623e585607ee",
     "https://deno.land/std@0.196.0/assert/assertion_error.ts": "4d0bde9b374dfbcbe8ac23f54f567b77024fb67dbb1906a852d67fe050d42f56",
