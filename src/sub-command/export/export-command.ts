@@ -59,20 +59,20 @@ class ExportCommand {
       })
       .option(
         "--csharp-ns <ns:string>",
-        "Specify namespace of output csharp file."
+        "Specify namespace of output csharp file.",
       )
       .option(
         "--csharp-suffix <suffix:string>",
         "Output class/file suffix, Default: Config, eg. Job -> JobConfig",
-        { default: "Config" }
+        { default: "Config" },
       )
       .option(
         "--keep-case",
-        "snake_case will be converted to PascalCase by default. use this option prevent default action."
+        "snake_case will be converted to PascalCase by default. use this option prevent default action.",
       )
       .option(
         "-o, --out-dir <dir:string>",
-        "Output path. By default file will be converted in-place."
+        "Output path. By default file will be converted in-place.",
       )
       .option("--header-row <header:number>", "Row point to header.", {
         // =================================================
@@ -118,9 +118,8 @@ class ExportCommand {
       const codePlaceholder = "#$@#";
       const namePlaceholder = "#sheetName#";
       if (this.#opts.csharpNs != undefined) {
-        outFrameStr += `namespace ${
-          this.#opts.csharpNs
-        } {\n${codePlaceholder}\n}`;
+        outFrameStr +=
+          `namespace ${this.#opts.csharpNs} {\n${codePlaceholder}\n}`;
       } else {
         outFrameStr += `\n${codePlaceholder}`;
       }
@@ -143,7 +142,7 @@ class ExportCommand {
         console.log("sheet: " + sheetName);
         const [headerRow, descRow] = rows.splice(
           this.#opts.headerRow - 1,
-          2
+          2,
         ) as string[][];
 
         let sheetOut = `\tpublic class ${namePlaceholder} {\n`;
@@ -158,12 +157,20 @@ class ExportCommand {
 `;
 
           // field
-          sheetOut += `\t\tpublic ${this.#getColumnCSharpType(
-            headerCell
-          )} ${this.#getColumnKey(headerCell)};\n`;
+          sheetOut += `\t\tpublic ${
+            this.#getColumnCSharpType(
+              headerCell,
+            )
+          } ${this.#getColumnKey(headerCell)};\n`;
         }
 
-        sheetOut += "\t}";
+        // ShallowCopy
+        sheetOut += `\n\t\tpublic ${namePlaceholder} ShallowCopy()
+\t\t{
+\t\t\treturn (${namePlaceholder})MemberwiseClone();
+\t\t}\n`
+
+        sheetOut += "\n\t}";
         sheetOutObj[j] = sheetOut;
       }
 
@@ -172,27 +179,27 @@ class ExportCommand {
 
       if (keys.length < 1) continue;
       if (keys.length == 1) {
-        const className =
-          this.#getOutFileName(filePath) + this.#opts.csharpSuffix;
+        const className = this.#getOutFileName(filePath) +
+          this.#opts.csharpSuffix;
 
         let sheetOutStr = sheetOutObj[keys[0]];
-        sheetOutStr = sheetOutStr.replace(namePlaceholder, className);
-        sheetOutStr = outFrameStr.replace(codePlaceholder, sheetOutStr);
+        sheetOutStr = sheetOutStr.replaceAll(namePlaceholder, className);
+        sheetOutStr = outFrameStr.replaceAll(codePlaceholder, sheetOutStr);
 
         this.#pushTask(
-          this.#writeToFile(this.#getOutFilePath(filePath), sheetOutStr)
+          this.#writeToFile(this.#getOutFilePath(filePath), sheetOutStr),
         );
       } else {
         for (let n = 0; n < keys.length; ++n) {
-          const className =
-            workbook.SheetNames[Number(keys[n])] + this.#opts.csharpSuffix;
+          const className = workbook.SheetNames[Number(keys[n])] +
+            this.#opts.csharpSuffix;
 
           let sheetOutStr = sheetOutObj[keys[n]];
-          sheetOutStr.replace(namePlaceholder, className);
-          sheetOutStr = outFrameStr.replace(codePlaceholder, sheetOutStr);
+          sheetOutStr.replaceAll(namePlaceholder, className);
+          sheetOutStr = outFrameStr.replaceAll(codePlaceholder, sheetOutStr);
 
           this.#pushTask(
-            this.#writeToFile(this.#getOutFilePath(filePath), sheetOutStr)
+            this.#writeToFile(this.#getOutFilePath(filePath), sheetOutStr),
           );
         }
       }
@@ -252,7 +259,7 @@ class ExportCommand {
         console.log("sheet: " + sheetName);
         const headerRow = rows.splice(
           this.#opts.headerRow - 1,
-          2
+          2,
         )[0] as string[];
 
         const sheetRows: Array<Record<string, unknown>> = [];
@@ -267,7 +274,7 @@ class ExportCommand {
             if (!this.#validate(headerCell)) continue;
             rowJson[this.#getColumnKey(headerCell)] = this.#convertColumnType(
               cellValue,
-              headerCell
+              headerCell,
             );
           }
 
@@ -285,8 +292,8 @@ class ExportCommand {
       this.#pushTask(
         this.#writeToFile(
           this.#getOutFilePath(filePath),
-          JSON.stringify(outObj)
-        )
+          JSON.stringify(outObj),
+        ),
       );
 
       console.log("process finished.");
@@ -309,7 +316,7 @@ class ExportCommand {
 
     const outFileName = fileName.substring(
       0,
-      fileName.indexOf(path.extname(fileName))
+      fileName.indexOf(path.extname(fileName)),
     );
     return outFileName;
   }
