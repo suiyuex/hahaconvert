@@ -1,9 +1,9 @@
 import {
   Command,
   EnumType,
-} from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/mod.ts";
-import * as path from "https://deno.land/std@0.196.0/path/mod.ts";
-import { ensureDirSync } from "https://deno.land/std@0.196.0/fs/mod.ts";
+} from "@cliffy/command";
+import * as path from "@std/path";
+import { ensureDirSync } from "@std/fs";
 
 // @deno-types="https://cdn.sheetjs.com/xlsx-latest/package/types/index.d.ts"
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-latest/package/xlsx.mjs";
@@ -16,6 +16,7 @@ type ColumnType =
   | "bool"
   | "string"
   | "[]"
+  | "string[]"
   | "int[]"
   | "float[]";
 
@@ -49,7 +50,8 @@ class ExportCommand {
     this.#tasks = [];
   }
 
-  #opts: Options = null;
+  #opts: Options = undefined as any;
+
   register(command: Command) {
     command
       .command("export", "Export sheet from ods or xlsx to json, cs")
@@ -157,11 +159,10 @@ class ExportCommand {
 `;
 
           // field
-          sheetOut += `\t\tpublic ${
-            this.#getColumnCSharpType(
-              headerCell,
-            )
-          } ${this.#getColumnKey(headerCell)};\n`;
+          sheetOut += `\t\tpublic ${this.#getColumnCSharpType(
+            headerCell,
+          )
+            } ${this.#getColumnKey(headerCell)};\n`;
         }
 
         // ShallowCopy
@@ -260,7 +261,7 @@ class ExportCommand {
         const headerRow = rows.splice(
           this.#opts.headerRow - 1,
           2,
-        )[0] as string[];
+        )[1] as string[];
 
         const sheetRows: Array<Record<string, unknown>> = [];
 
@@ -355,30 +356,32 @@ class ExportCommand {
   }
 
   #convertColumnType(cellValue: unknown, headerCell: string) {
-    if (!cellValue) return cellValue;
-
     const columnType = this.#getColumnType(headerCell);
 
     switch (columnType) {
       case "int":
       case "float":
+        if (cellValue === null || cellValue === undefined) { return cellValue; }
         return Number(cellValue);
       case "bool":
         return Boolean(cellValue);
       case "[]":
-        return (cellValue as string).split(",");
+      case "string[]":
+        return String(cellValue).split(",");
       case "int[]":
       case "float[]":
-        return (cellValue as string).split(",").map((val) => Number(val));
+        return String(cellValue).split(",").map((val) => Number(val));
       case "string":
       default:
+        if (cellValue === null || cellValue === undefined) { return ''; }
         return String(cellValue);
     }
   }
 
   // 验证数据是否需要被导出，返回true则验证通过，false验证失败即数据不导出
   #validate(name: string) {
-    // console.log("validate: " + name + " type: " + typeof name);
+    if (name === null || name === undefined) return false;
+    console.log("validate: " + name + " type: " + typeof name);
     if (name.trim().startsWith("!")) return false;
     return true;
   }

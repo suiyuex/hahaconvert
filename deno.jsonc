@@ -1,8 +1,13 @@
 {
   "tasks": {
-    "dev": "deno run --allow-read --allow-write --watch src/main.ts export -o ./data -f cs sheets/Job.ods",
-    "install": "deno install --allow-read --allow-write -n hahaconvert src/main.ts",
-    "uninstall": "deno uninstall hahaconvert",
-    "compile": "deno compile --allow-read --allow-write --output hahaconvert src/main.ts"
+    "dev": "deno run --allow-import --allow-read --allow-write --watch src/main.ts export -o ./data -f cs sheets/Job.ods",
+    "install": "deno install --global --allow-import --allow-read --allow-write -n hahaconvert src/main.ts",
+    "uninstall": "deno uninstall --global hahaconvert",
+    "compile": "deno compile --allow-import --allow-read --allow-write --output hahaconvert src/main.ts"
+  },
+  "imports": {
+    "@cliffy/command": "jsr:@cliffy/command@^1.0.0-rc.7",
+    "@std/fs": "jsr:@std/fs@^1.0.17",
+    "@std/path": "jsr:@std/path@^1.0.9"
   }
 }
