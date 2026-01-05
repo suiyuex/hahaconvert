@@ -1,0 +1,1 @@
+[{"id":1,"name":"运动饮料","desc":"喝掉能在15秒内，加快30%的开宝箱速度和撤离速度。","icon":"Items/icon_3","assetPath":"","itemType":"ConsumableItem","useType":"AttachBuff","useParam":"1#2"},{"id":2,"name":"震慑符咒","desc":"震慑眩晕幽灵4秒。","icon":"Items/icon_4","assetPath":"","itemType":"ConsumableItem","useType":"AttachBuff","useParam":"3"}]

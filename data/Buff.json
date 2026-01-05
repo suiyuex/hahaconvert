@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "icon": "",
+        "affectAttrId": 4,
+        "modifierType": "Multiplication",
+        "modifierParam": 1.3,
+        "duration": 15,
+        "desc": "加快30%的开宝箱速度",
+        "name": "正在召唤策划中。。。请稍后"
+    },
+    {
+        "id": 2,
+        "icon": "",
+        "affectAttrId": 5,
+        "modifierType": "Multiplication",
+        "modifierParam": 1.3,
+        "duration": 15,
+        "desc": "加快30%撤离速度。",
+        "name": "正在召唤策划中。。。请稍后"
+    },
+    {
+        "id": 3,
+        "icon": "",
+        "affectAttrId": 3,
+        "modifierType": "Equals",
+        "modifierParam": 0,
+        "duration": 4,
+        "desc": "震慑眩晕幽灵4秒。",
+        "name": "正在召唤策划中。。。请稍后"
+    }
+]

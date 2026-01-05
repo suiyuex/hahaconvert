@@ -1,0 +1,8 @@
+[
+    { "id": 1, "name": "前进速度", "unitType": "Number" },
+    { "id": 2, "name": "生存时间", "unitType": "Number" },
+    { "id": 3, "name": "生存时间流逝速度", "unitType": "Number" },
+    { "id": 4, "name": "开宝箱速度", "unitType": "Number" },
+    { "id": 5, "name": "撤离时间", "unitType": "Number" },
+    { "id": 6, "name": "撤离时间流逝速度", "unitType": "Number" }
+]
